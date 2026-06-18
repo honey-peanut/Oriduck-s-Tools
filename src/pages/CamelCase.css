@@ -1,0 +1,370 @@
+.camelcase {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 24px 80px;
+  position: relative;
+  cursor: default;
+  user-select: none;
+}
+
+/* 입력란만 텍스트 커서/선택 허용 */
+.cc-input {
+  cursor: text;
+  user-select: text;
+}
+
+.back-btn {
+  position: absolute;
+  top: 32px;
+  left: 32px;
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.back-btn:hover {
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.camelcase-title {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  margin: 0 0 32px;
+}
+
+/* ── 레이아웃 (좌: 입력/기본/고정, 우: 전체 토글 패널) ── */
+.cc-layout {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.cc-cards {
+  width: 460px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
+}
+
+.cc-cards-right {
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 30%, transparent 70%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 30%, transparent 70%);
+  -webkit-mask-size: 300% 100%;
+  mask-size: 300% 100%;
+  -webkit-mask-position: 100% 0;
+  mask-position: 100% 0;
+}
+
+/* + : 좌→우 그라데이션으로 나타남 */
+.cc-cards-right.is-open {
+  animation: ccRevealLR 0.4s ease forwards;
+}
+
+/* − : 우→좌 그라데이션으로 사라짐 */
+.cc-cards-right.is-closing {
+  animation: ccHideRL 0.4s ease forwards;
+}
+
+@keyframes ccRevealLR {
+  from {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  to {
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+}
+
+@keyframes ccHideRL {
+  from {
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+  to {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+}
+
+.cc-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── 전체 컴포넌트 토글 버튼 (고정 카드 상단 우측) ── */
+.cc-toggle {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.cc-toggle:hover {
+  color: rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cc-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  margin: 0;
+}
+
+.cc-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-size: 15px;
+  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  line-height: 1.6;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.cc-input:focus {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ── 컴포넌트 아이템 (좌: 접두어 / 우: 복사 필드) ── */
+.cc-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cc-item-prefix {
+  flex-shrink: 0;
+  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 14px;
+  color: #8ab4ff;
+}
+
+.cc-field {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  text-align: left;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-size: 15px;
+  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  cursor: pointer;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.cc-field:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.cc-field:disabled {
+  cursor: default;
+}
+
+.cc-field-empty {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.cc-copied {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #4f8ef7;
+}
+
+/* ── 액션 버튼 (고정 / 삭제) ── */
+.cc-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.cc-btn svg {
+  display: block;
+}
+
+.cc-btn-pin:hover {
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.cc-btn-pin-active,
+.cc-btn-pin-active:hover {
+  background: #4f8ef7;
+  border-color: #4f8ef7;
+  color: #fff;
+}
+
+.cc-btn-del {
+  color: #f0707f;
+  border-color: rgba(240, 112, 127, 0.35);
+}
+
+.cc-btn-del:hover {
+  background: rgba(240, 112, 127, 0.14);
+  border-color: rgba(240, 112, 127, 0.6);
+  color: #ff8a96;
+}
+
+.cc-empty {
+  margin: 0;
+  padding: 6px 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.cc-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* ── 라이트 모드 ── */
+.theme-light .back-btn {
+  border-color: rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.theme-light .back-btn:hover {
+  color: rgba(0, 0, 0, 0.8);
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+.theme-light .cc-card {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.theme-light .cc-input {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.theme-light .cc-input:focus {
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+.theme-light .cc-item-prefix {
+  color: #2f6bd6;
+}
+
+.theme-light .cc-field {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.theme-light .cc-field:hover:not(:disabled) {
+  border-color: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.theme-light .cc-field-empty {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.theme-light .cc-btn {
+  border-color: rgba(0, 0, 0, 0.14);
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.theme-light .cc-btn-pin:hover {
+  color: rgba(0, 0, 0, 0.9);
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+.theme-light .cc-btn-pin-active,
+.theme-light .cc-btn-pin-active:hover {
+  background: #4f8ef7;
+  border-color: #4f8ef7;
+  color: #fff;
+}
+
+.theme-light .cc-btn-del {
+  color: #d83a4c;
+  border-color: rgba(216, 58, 76, 0.3);
+}
+
+.theme-light .cc-btn-del:hover {
+  background: rgba(216, 58, 76, 0.1);
+  border-color: rgba(216, 58, 76, 0.5);
+  color: #c42c3d;
+}
+
+.theme-light .cc-empty {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.theme-light .cc-toggle {
+  border-color: rgba(0, 0, 0, 0.14);
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.theme-light .cc-toggle:hover {
+  color: rgba(0, 0, 0, 0.95);
+  border-color: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.theme-light .cc-input::placeholder {
+  color: rgba(0, 0, 0, 0.25);
+}
