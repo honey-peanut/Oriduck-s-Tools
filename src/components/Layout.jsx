@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import './Layout.css'
 
-const VERSION = '0.1.02.00'
+const VERSION = '0.1.03.00'
 
 function Layout() {
   const [theme, setTheme] = useState('dark')
