@@ -113,7 +113,7 @@ export default function CamelCase() {
             <input
               type="text"
               className="cc-input"
-              placeholder="SOME_VARIABLE_NAME"
+              placeholder="여기에 컬럼명을 입력하세요."
               value={input}
               onChange={(e) => {
                 setInput(e.target.value)

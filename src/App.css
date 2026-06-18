@@ -27,6 +27,38 @@ body {
   gap: 24px;
 }
 
+.home-duck {
+  width: 132px;
+  height: auto;
+  color: var(--text);
+  display: block;
+  opacity: 0;
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 30%, transparent 70%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 30%, transparent 70%);
+  -webkit-mask-size: 300% 100%;
+  mask-size: 300% 100%;
+  -webkit-mask-position: 100% 0;
+  mask-position: 100% 0;
+  animation: homeDuckReveal 0.7s ease 0.9s forwards;
+}
+
+.home-duck-eye {
+  fill: var(--bg);
+}
+
+@keyframes homeDuckReveal {
+  from {
+    opacity: 0;
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  to {
+    opacity: 1;
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+}
+
 .welcome-text {
   font-size: 48px;
   font-weight: 700;
@@ -66,7 +98,7 @@ body {
   position: relative;
   overflow: hidden;
   transition: color 0.3s, border-color 0.3s;
-  animation: btnReveal 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 1.15s both;
+  animation: btnReveal 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 1.85s both;
 }
 
 @keyframes btnReveal {

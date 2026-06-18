@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useLoadingNavigate } from '../hooks/useLoadingNavigate'
 import './Dashboard.css'
 
 const TOOLS = [
-  { id: 1,  title: '카멜 케이스 변환기', desc: '언더바 대문자 조합으로 된 단어를 카멜 케이스로 변환합니다.', path: '/tools/camel-case' },
+  { id: 1,  title: '카멜 케이스 변환', desc: '언더바 대문자 조합으로 된 단어를 카멜 케이스로 변환합니다.', path: '/tools/camel-case' },
   { id: 2,  title: '예시',              desc: '개발중입니다...', path: null },
   { id: 3,  title: '예시',              desc: '개발중입니다...', path: null },
   { id: 4,  title: '예시',              desc: '개발중입니다...', path: null },
@@ -20,20 +20,78 @@ const STEP = CARD_WIDTH * 0.5
 const MOMENTUM_WINDOW_MS = 120
 const MOMENTUM_FACTOR = 180
 const MAX_MOMENTUM_STEPS = 4
+const RUBBER_LIMIT = 0.45 // 끝단을 넘어 드래그할 때 최대로 밀리는 양(스텝 단위)
+const GLIDE_PER_CARD = 48 // 한 칸 지나가는 데 걸리는 시간(ms)
+const GLIDE_MIN = 120 // 최소 이동 시간(ms)
+const GLIDE_MAX = 520 // 최대 이동 시간(ms)
+
+// 스마트폰식 고무줄: 경계를 넘는 만큼 점점 저항이 커져 아주 조금만 움직임
+function rubberBand(desired, max) {
+  if (desired < 0) {
+    const x = -desired
+    return -(RUBBER_LIMIT * x) / (x + RUBBER_LIMIT)
+  }
+  if (desired > max) {
+    const x = desired - max
+    return max + (RUBBER_LIMIT * x) / (x + RUBBER_LIMIT)
+  }
+  return desired
+}
 
 export default function Dashboard() {
   const navigate = useLoadingNavigate()
-  const [active, setActive] = useState(0)
+  const [pos, setPos] = useState(0) // 연속 위치(정수일 때 그 카드가 정중앙)
   const [isDragging, setIsDragging] = useState(false)
   const [dragDelta, setDragDelta] = useState(0)
+  const [settled, setSettled] = useState(true) // 카드 이동 완료 여부
+
   const dragStartX = useRef(null)
-  const startActive = useRef(0)
+  const startPos = useRef(0)
   const velocityTracker = useRef([])
   const hasDragged = useRef(false)
+  const rafRef = useRef(null)
+  const posRef = useRef(0)
+  useEffect(() => {
+    posRef.current = pos
+  }, [pos])
+
+  // 위치를 연속으로 애니메이션 → 거쳐가는 카드가 중앙에 올 때마다 선택됨
+  const animateTo = (from, toRaw) => {
+    const to = Math.max(0, Math.min(TOOLS.length - 1, toRaw))
+    cancelAnimationFrame(rafRef.current)
+    const dist = Math.abs(to - from)
+    if (dist < 0.001) {
+      setPos(to)
+      setSettled(true)
+      rafRef.current = null
+      return
+    }
+    setSettled(false)
+    setPos(from)
+    const duration = Math.max(GLIDE_MIN, Math.min(GLIDE_MAX, dist * GLIDE_PER_CARD))
+    const startT = performance.now()
+    const tick = (now) => {
+      const t = Math.min((now - startT) / duration, 1)
+      const eased = 1 - Math.pow(1 - t, 3) // easeOutCubic
+      setPos(from + (to - from) * eased)
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick)
+      } else {
+        setPos(to)
+        setSettled(true)
+        rafRef.current = null
+      }
+    }
+    rafRef.current = requestAnimationFrame(tick)
+  }
+
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), [])
 
   const onMouseDown = (e) => {
+    cancelAnimationFrame(rafRef.current)
+    rafRef.current = null
     dragStartX.current = e.clientX
-    startActive.current = active
+    startPos.current = posRef.current
     setIsDragging(true)
     setDragDelta(0)
     velocityTracker.current = [{ x: e.clientX, t: Date.now() }]
@@ -66,24 +124,27 @@ export default function Dashboard() {
       }
     }
 
-    const baseSteps = -Math.round(dragDelta / STEP)
-    const totalSteps = baseSteps + momentumSteps
-    setActive(Math.max(0, Math.min(TOOLS.length - 1, startActive.current + totalSteps)))
+    const max = TOOLS.length - 1
+    const desired = startPos.current + (-dragDelta / STEP)
+    const fromPos = rubberBand(desired, max) // 손을 뗀 실제 위치(고무줄 포함)
+    const target = Math.round(desired) + momentumSteps
     setIsDragging(false)
     setDragDelta(0)
     dragStartX.current = null
+    animateTo(fromPos, target)
   }
 
   const onCardClick = (i) => {
     if (hasDragged.current) return
-    setActive(i)
+    animateTo(posRef.current, i)
   }
 
-  const liveSteps = isDragging ? -Math.round(dragDelta / STEP) : 0
-  const liveActive = isDragging
-    ? Math.max(0, Math.min(TOOLS.length - 1, startActive.current + liveSteps))
-    : active
-  const remainder = isDragging ? dragDelta + liveSteps * STEP : 0
+  const max = TOOLS.length - 1
+  const desired = startPos.current + (-dragDelta / STEP)
+  // 드래그 중엔 손가락을 따라(고무줄), 그 외엔 애니메이션되는 연속 위치
+  const livePos = isDragging ? rubberBand(desired, max) : pos
+  // 선택 강조 = 실제 위치에서 가장 가까운(=중앙) 카드
+  const activeIndex = Math.max(0, Math.min(max, Math.round(livePos)))
 
   return (
     <div className="dashboard">
@@ -94,7 +155,7 @@ export default function Dashboard() {
         </svg>
       </button>
       <div className="dashboard-main">
-        <h1 className="dashboard-title">어떤 도구를 사용하시나요?</h1>
+        <h1 className="dashboard-title">어떤 기능이 필요하신가요?</h1>
 
         <div
           className="carousel"
@@ -105,29 +166,31 @@ export default function Dashboard() {
           style={{ userSelect: 'none' }}
         >
           {TOOLS.map((tool, i) => {
-            const offset = i - liveActive
+            const offset = i - livePos
             const abs = Math.abs(offset)
-            const x = offset * STEP + remainder
+            const x = offset * STEP
             const scale = 1 - abs * 0.06
+            const isActiveCard = i === activeIndex
 
             return (
               <div
                 key={tool.id}
-                className={`card ${offset === 0 ? 'card-active' : ''}`}
+                className={`card ${isActiveCard ? 'card-active' : ''}${
+                  isActiveCard && settled && !isDragging ? ' is-settled' : ''
+                }`}
                 onClick={() => onCardClick(i)}
                 style={{
                   transform: `translateY(-50%) translateX(${x}px) scale(${scale})`,
-                  zIndex: TOOLS.length - abs,
-                  transition: isDragging ? 'none' : 'transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
-                  cursor: offset !== 0 ? 'pointer' : 'default',
+                  zIndex: TOOLS.length - Math.round(abs),
+                  transition: 'none',
+                  cursor: isActiveCard ? 'default' : 'pointer',
                 }}
               >
-                <span className="card-number">{String(tool.id).padStart(2, '0')}</span>
                 <h2 className="card-title">{tool.title}</h2>
                 <p className="card-desc">{tool.desc}</p>
                 <button
-                  className={`card-btn ${offset === 0 ? 'card-btn-active' : ''}`}
-                  disabled={offset !== 0}
+                  className="card-btn"
+                  disabled={!isActiveCard}
                   onClick={(e) => {
                     e.stopPropagation()
                     if (tool.path) navigate(tool.path)
