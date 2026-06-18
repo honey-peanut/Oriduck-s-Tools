@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import './Layout.css'
 
+const VERSION = '0.1.01.01'
+
 function Layout() {
   const [theme, setTheme] = useState('dark')
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -33,6 +35,8 @@ function Layout() {
             >
               🌙 다크 모드
             </button>
+            <div className="settings-divider" />
+            <div className="settings-version">버전: {VERSION}</div>
           </div>
         )}
         <button className="settings-btn" title="Settings">
