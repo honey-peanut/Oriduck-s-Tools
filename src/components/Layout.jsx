@@ -27,13 +27,25 @@ function Layout() {
               className={`theme-btn ${theme === 'light' ? 'active' : ''}`}
               onClick={() => toggleTheme('light')}
             >
-              ☀️ 라이트 모드
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
+                <path d="M9 18h6" />
+                <path d="M10 22h4" />
+              </svg>
+              불켜기
             </button>
             <button
               className={`theme-btn ${theme === 'dark' ? 'active' : ''}`}
               onClick={() => toggleTheme('dark')}
             >
-              🌙 다크 모드
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M16.8 11.2c.8-.9 1.2-2 1.2-3.2a6 6 0 0 0-9.3-5" />
+                <path d="M6.3 6.3a4.7 4.7 0 0 0 1.2 5.2c.7.7 1.3 1.5 1.5 2.5" />
+                <path d="M9 18h6" />
+                <path d="M10 22h4" />
+                <path d="m2 2 20 20" />
+              </svg>
+              불끄기
             </button>
             <div className="settings-divider" />
             <div className="settings-version">버전: {VERSION}</div>

@@ -55,6 +55,21 @@ export default function Dashboard() {
     posRef.current = pos
   }, [pos])
 
+  // 진입 시: 중앙에 모여있던 카드들이 좌→우로 펼쳐짐 (spread 0 → 1)
+  const [spread, setSpread] = useState(0)
+  useEffect(() => {
+    const DUR = 1100
+    const start = performance.now()
+    let raf
+    const tick = (now) => {
+      const t = Math.min((now - start) / DUR, 1)
+      setSpread(1 - Math.pow(1 - t, 3)) // easeOutCubic
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
   // 위치를 연속으로 애니메이션 → 거쳐가는 카드가 중앙에 올 때마다 선택됨
   const animateTo = (from, toRaw) => {
     const to = Math.max(0, Math.min(TOOLS.length - 1, toRaw))
@@ -153,13 +168,13 @@ export default function Dashboard() {
           <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
           <polyline points="9 21 9 12 15 12 15 21" />
         </svg>
+        <span className="btn-label">홈</span>
       </button>
       <div className="dashboard-main">
         <h1 className="dashboard-title">어떤 기능이 필요하신가요?</h1>
 
         <div
           className="carousel"
-          onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
           onMouseUp={commit}
           onMouseLeave={commit}
@@ -168,22 +183,27 @@ export default function Dashboard() {
           {TOOLS.map((tool, i) => {
             const offset = i - livePos
             const abs = Math.abs(offset)
-            const x = offset * STEP
-            const scale = 1 - abs * 0.06
+            const x = offset * STEP * spread
             const isActiveCard = i === activeIndex
+            // 이동이 모두 끝난 뒤 선택된 카드만 살짝 앞으로 나오듯 커짐
+            const popped = isActiveCard && settled && !isDragging
+            const scale = 1 - abs * 0.06 + (popped ? 0.06 : 0)
 
             return (
               <div
                 key={tool.id}
                 className={`card ${isActiveCard ? 'card-active' : ''}${
-                  isActiveCard && settled && !isDragging ? ' is-settled' : ''
+                  popped ? ' is-settled' : ''
                 }`}
+                onMouseDown={onMouseDown}
                 onClick={() => onCardClick(i)}
                 style={{
                   transform: `translateY(-50%) translateX(${x}px) scale(${scale})`,
                   zIndex: TOOLS.length - Math.round(abs),
-                  transition: 'none',
-                  cursor: isActiveCard ? 'default' : 'pointer',
+                  transition: popped
+                    ? 'transform 0.32s cubic-bezier(0.34, 1.35, 0.64, 1)'
+                    : 'none',
+                  cursor: isDragging ? 'grabbing' : 'grab',
                 }}
               >
                 <h2 className="card-title">{tool.title}</h2>

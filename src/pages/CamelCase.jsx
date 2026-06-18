@@ -100,8 +100,12 @@ export default function CamelCase() {
 
   return (
     <div className="camelcase">
-      <button className="back-btn" onClick={() => navigate('/dashboard')}>
-        ← 뒤로
+      <button className="back-btn" onClick={() => navigate('/dashboard')} title="뒤로">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M9 14 4 9l5-5" />
+          <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H9" />
+        </svg>
+        <span className="btn-label">뒤로</span>
       </button>
 
       <h1 className="camelcase-title">카멜 케이스 변환기</h1>

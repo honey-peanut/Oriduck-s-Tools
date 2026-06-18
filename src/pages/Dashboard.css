@@ -17,14 +17,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   cursor: pointer;
   user-select: none;
   transition: color 0.2s, border-color 0.2s;
 }
 
+.home-btn .btn-label {
+  max-width: 0;
+  margin-left: 0;
+  opacity: 0;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: max-width 0.3s ease, margin-left 0.3s ease, opacity 0.25s ease;
+}
+
 .home-btn:hover {
   color: rgba(255, 255, 255, 0.85);
   border-color: rgba(255, 255, 255, 0.25);
+}
+
+.home-btn:hover .btn-label {
+  max-width: 48px;
+  margin-left: 6px;
+  opacity: 1;
 }
 
 .theme-light .home-btn {
@@ -71,22 +89,18 @@
   position: relative;
   width: 100%;
   height: 480px;
-  cursor: grab;
+  cursor: default;
   user-select: none;
   overflow: hidden;
 
-  mask-image: linear-gradient(90deg, black 45%, transparent 65%);
-  -webkit-mask-image: linear-gradient(90deg, black 45%, transparent 65%);
-  mask-size: 250% 100%;
-  -webkit-mask-size: 250% 100%;
+  mask-image: linear-gradient(90deg, black 28%, transparent 82%);
+  -webkit-mask-image: linear-gradient(90deg, black 28%, transparent 82%);
+  mask-size: 280% 100%;
+  -webkit-mask-size: 280% 100%;
   mask-position: 100% 0;
   -webkit-mask-position: 100% 0;
 
-  animation: revealLeft 1s cubic-bezier(0.4, 0, 0.2, 1) 0.25s forwards;
-}
-
-.carousel:active {
-  cursor: grabbing;
+  animation: revealLeft 0.6s ease 0.1s forwards;
 }
 
 @keyframes revealLeft {
@@ -110,7 +124,7 @@
   height: 320px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #1c1c1c;
+  background: #232326;
 
   padding: 24px 28px 36px;
   display: flex;
@@ -121,9 +135,15 @@
 }
 
 .card-active {
-  background: #222222;
+  background: #2b2b30;
   border-color: rgba(255, 255, 255, 0.14);
   box-shadow: 0 16px 56px rgba(0, 0, 0, 0.6);
+}
+
+/* 이동 완료 후 앞으로 나온 카드의 그림자 강조 */
+.card-active.is-settled {
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.65);
+  transition: box-shadow 0.32s ease;
 }
 
 .card-title {
@@ -165,6 +185,13 @@
 
 /* 이동이 끝난(가운데) 카드에 마우스를 올렸을 때만 0 → 현재 크기로 펼쳐짐 */
 .card-active.is-settled:hover .card-btn {
+  height: 40px;
+  padding: 10px 20px;
+  opacity: 1;
+}
+
+/* 버튼 자체에 마우스가 있으면 드래그 중이어도 펼쳐진 상태 유지 */
+.card-btn:hover {
   height: 40px;
   padding: 10px 20px;
   opacity: 1;
