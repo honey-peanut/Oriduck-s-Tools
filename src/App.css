@@ -40,7 +40,7 @@ body {
   mask-size: 300% 100%;
   -webkit-mask-position: 0% 0;
   mask-position: 0% 0;
-  animation: homeDuckReveal 0.7s ease 0.9s both;
+  animation: homeDuckReveal 1.4s ease 1.55s both;
 }
 
 /* 등장이 끝나면 휴지 상태에선 애니메이션 없음 (마우스를 떼도 등장이 재생되지 않음) */
@@ -123,8 +123,8 @@ body {
   -webkit-text-fill-color: transparent;
   color: transparent;
   /* 등장 후(0.9s) 왼쪽→오른쪽으로 그라데이션 색이 연속적으로 흐름 */
-  animation: welcomeReveal 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) forwards,
-    welcomeFlow 3s linear 0.9s infinite;
+  animation: welcomeReveal 1.2s cubic-bezier(0.22, 0.61, 0.36, 1) forwards,
+    welcomeFlow 3s linear 1.2s infinite;
 }
 
 @keyframes welcomeFlow {
@@ -148,6 +148,7 @@ body {
 
 .btn-login {
   width: 100%;
+  margin-top: 36px;
   padding: 19px 0;
   background: none;
   border: none;
@@ -163,7 +164,7 @@ body {
   position: relative;
   overflow: hidden;
   transition: color 0.3s, border-color 0.3s;
-  animation: btnReveal 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 1.85s both;
+  animation: btnReveal 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) 3.4s both;
 }
 
 @keyframes btnReveal {

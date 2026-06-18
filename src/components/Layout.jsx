@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import './Layout.css'
 
-const VERSION = '0.1.01.01'
+const VERSION = '0.1.02.00'
 
 function Layout() {
   const [theme, setTheme] = useState('dark')
@@ -49,6 +49,8 @@ function Layout() {
             </button>
             <div className="settings-divider" />
             <div className="settings-version">버전: {VERSION}</div>
+            <div className="settings-divider" />
+            <div className="settings-copyright">© 2026 Oriduck. All rights reserved.</div>
           </div>
         )}
         <button className="settings-btn" title="Settings">

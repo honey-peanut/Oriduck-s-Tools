@@ -55,6 +55,9 @@ export default function Dashboard() {
     posRef.current = pos
   }, [pos])
 
+  // 카드 "위로 뽑힘" 후 페이지 이동
+  const [launchId, setLaunchId] = useState(null)
+
   // 진입 시: 중앙에 모여있던 카드들이 좌→우로 펼쳐짐 (spread 0 → 1)
   const [spread, setSpread] = useState(0)
   useEffect(() => {
@@ -194,12 +197,17 @@ export default function Dashboard() {
                 key={tool.id}
                 className={`card ${isActiveCard ? 'card-active' : ''}${
                   popped ? ' is-settled' : ''
-                }`}
+                }${launchId === tool.id ? ' card-launch' : ''}`}
                 onMouseDown={onMouseDown}
                 onClick={() => onCardClick(i)}
+                onAnimationEnd={(e) => {
+                  if (launchId === tool.id && e.animationName === 'cardLaunch') {
+                    navigate(tool.path)
+                  }
+                }}
                 style={{
                   transform: `translateY(-50%) translateX(${x}px) scale(${scale})`,
-                  zIndex: TOOLS.length - Math.round(abs),
+                  zIndex: launchId === tool.id ? 100 : TOOLS.length - Math.round(abs),
                   transition: popped
                     ? 'transform 0.32s cubic-bezier(0.34, 1.35, 0.64, 1)'
                     : 'none',
@@ -213,7 +221,7 @@ export default function Dashboard() {
                   disabled={!isActiveCard}
                   onClick={(e) => {
                     e.stopPropagation()
-                    if (tool.path) navigate(tool.path)
+                    if (tool.path && !launchId) setLaunchId(tool.id)
                   }}
                 >
                   이 도구 사용해보기

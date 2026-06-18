@@ -72,7 +72,7 @@
 }
 
 .cc-cards {
-  width: 460px;
+  width: 540px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -95,11 +95,11 @@
 
 @keyframes ccPanelOpen {
   from { width: 0; }
-  to { width: 480px; }
+  to { width: 560px; }
 }
 
 @keyframes ccPanelClose {
-  from { width: 480px; }
+  from { width: 560px; }
   to { width: 0; }
 }
 
@@ -219,6 +219,65 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+/* 고정 항목 추가/제거 시 높이가 자라나고 줄어드는 애니메이션 */
+.cc-row {
+  animation: ccRowIn 0.26s ease;
+}
+
+.cc-row.is-removing {
+  animation: ccRowOut 0.24s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes ccRowIn {
+  from { max-height: 0; opacity: 0; overflow: hidden; }
+  to   { max-height: 80px; opacity: 1; overflow: hidden; }
+}
+
+@keyframes ccRowOut {
+  from { max-height: 80px; opacity: 1; overflow: hidden; }
+  to   { max-height: 0; opacity: 0; overflow: hidden; }
+}
+
+.cc-item.is-dragging {
+  z-index: 5;
+}
+
+.cc-item.is-dragging .cc-field {
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+}
+
+.cc-item.is-dragging .cc-drag-handle {
+  cursor: grabbing;
+}
+
+/* 고정 컴포넌트 순서 변경용 드래그 핸들 */
+.cc-drag-handle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.35);
+  cursor: grab;
+}
+
+.cc-drag-handle:active {
+  cursor: grabbing;
+}
+
+.cc-drag-handle:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.theme-light .cc-drag-handle {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.theme-light .cc-drag-handle:hover {
+  color: rgba(0, 0, 0, 0.6);
 }
 
 .cc-item-prefix {

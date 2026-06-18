@@ -146,6 +146,18 @@
   transition: box-shadow 0.32s ease;
 }
 
+/* "이 도구 사용해보기" 클릭 시 카드가 위로 뽑히며 사라짐 */
+.card.card-launch {
+  animation: cardLaunch 0.55s cubic-bezier(0.5, 0, 0.7, 0.25) forwards;
+}
+
+@keyframes cardLaunch {
+  0%   { transform: translateY(-50%) scale(1.06); opacity: 1; }
+  22%  { transform: translateY(-42%) scale(0.95); opacity: 1; }
+  70%  { opacity: 1; }
+  100% { transform: translateY(-200%) scale(1.18); opacity: 0; }
+}
+
 .card-title {
   font-size: 20px;
   font-weight: 600;
