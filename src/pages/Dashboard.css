@@ -173,6 +173,16 @@
 .card-active.is-settled:hover .card-btn:hover {
   background: rgba(255, 255, 255, 0.14);
   color: rgba(255, 255, 255, 0.95);
+  animation: btnTremble 0.1s linear infinite;
+}
+
+/* 버튼 위에 마우스가 있으면 좌우로 미세하게 부들부들 떨림 */
+@keyframes btnTremble {
+  0%   { transform: translateX(-1.2px); }
+  25%  { transform: translateX(1.4px); }
+  50%  { transform: translateX(-1px); }
+  75%  { transform: translateX(1.2px); }
+  100% { transform: translateX(-1.2px); }
 }
 
 /* ── 라이트 모드 카드 ── */

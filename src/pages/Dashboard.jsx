@@ -21,9 +21,9 @@ const MOMENTUM_WINDOW_MS = 120
 const MOMENTUM_FACTOR = 180
 const MAX_MOMENTUM_STEPS = 4
 const RUBBER_LIMIT = 0.45 // 끝단을 넘어 드래그할 때 최대로 밀리는 양(스텝 단위)
-const GLIDE_PER_CARD = 48 // 한 칸 지나가는 데 걸리는 시간(ms)
-const GLIDE_MIN = 120 // 최소 이동 시간(ms)
-const GLIDE_MAX = 520 // 최대 이동 시간(ms)
+const GLIDE_PER_CARD = 55 // 한 칸 지나가는 데 걸리는 시간(ms)
+const GLIDE_MIN = 145 // 최소 이동 시간(ms)
+const GLIDE_MAX = 560 // 최대 이동 시간(ms)
 
 // 스마트폰식 고무줄: 경계를 넘는 만큼 점점 저항이 커져 아주 조금만 움직임
 function rubberBand(desired, max) {
