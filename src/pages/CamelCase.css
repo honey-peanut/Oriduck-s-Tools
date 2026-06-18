@@ -48,7 +48,6 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  gap: 20px;
 }
 
 .cc-cards {
@@ -59,7 +58,33 @@
   gap: 20px;
 }
 
+/* 패널 슬롯: 폭을 0↔전체로 애니메이션해 왼쪽 컬럼을 부드럽게 밀어냄 */
+.cc-panel {
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.cc-panel.is-open {
+  animation: ccPanelOpen 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.cc-panel.is-closing {
+  animation: ccPanelClose 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@keyframes ccPanelOpen {
+  from { width: 0; }
+  to { width: 480px; }
+}
+
+@keyframes ccPanelClose {
+  from { width: 480px; }
+  to { width: 0; }
+}
+
+/* 패널 내용: 고정 폭(460) + 좌측 간격(20). 그라데이션으로 부드럽게 드러남 */
 .cc-cards-right {
+  margin-left: 20px;
   -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 30%, transparent 70%);
   mask-image: linear-gradient(90deg, #000 0%, #000 30%, transparent 70%);
   -webkit-mask-size: 300% 100%;
@@ -68,14 +93,12 @@
   mask-position: 100% 0;
 }
 
-/* + : 좌→우 그라데이션으로 나타남 */
-.cc-cards-right.is-open {
-  animation: ccRevealLR 0.4s ease forwards;
+.cc-panel.is-open .cc-cards-right {
+  animation: ccRevealLR 0.42s ease forwards;
 }
 
-/* − : 우→좌 그라데이션으로 사라짐 */
-.cc-cards-right.is-closing {
-  animation: ccHideRL 0.4s ease forwards;
+.cc-panel.is-closing .cc-cards-right {
+  animation: ccHideRL 0.42s ease forwards;
 }
 
 @keyframes ccRevealLR {

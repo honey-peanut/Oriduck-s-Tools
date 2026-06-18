@@ -33,17 +33,31 @@ body {
   letter-spacing: -1px;
   user-select: none;
   cursor: default;
+  animation: welcomeReveal 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@keyframes welcomeReveal {
+  from {
+    opacity: 0;
+    filter: blur(18px);
+    transform: scale(1.35);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
 }
 
 .btn-login {
   width: 100%;
-  padding: 16px 0;
+  padding: 19px 0;
   background: none;
   border: none;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.55);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 400;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -52,6 +66,22 @@ body {
   position: relative;
   overflow: hidden;
   transition: color 0.3s, border-color 0.3s;
+  animation: btnReveal 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 1.15s both;
+}
+
+@keyframes btnReveal {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateX(-44px);
+    pointer-events: none;
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
+    pointer-events: auto;
+  }
 }
 
 .btn-login::after {

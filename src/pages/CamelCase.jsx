@@ -173,11 +173,12 @@ export default function CamelCase() {
 
         {panelMounted && (
           <div
-            className={`cc-cards cc-cards-right ${showAll ? 'is-open' : 'is-closing'}`}
+            className={`cc-panel ${showAll ? 'is-open' : 'is-closing'}`}
             onAnimationEnd={onPanelAnimEnd}
           >
-            <section className="cc-card">
-              <h2 className="cc-card-title">전체 컴포넌트</h2>
+            <div className="cc-cards cc-cards-right">
+              <section className="cc-card">
+                <h2 className="cc-card-title">전체 컴포넌트</h2>
               {ALL_PREFIXES.map((prefix) => {
                 const isPinned = pinned.includes(prefix)
                 return (
@@ -201,7 +202,8 @@ export default function CamelCase() {
                   />
                 )
               })}
-            </section>
+              </section>
+            </div>
           </div>
         )}
       </div>
