@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import CamelCase from './pages/CamelCase'
+import ImageToPdf from './pages/ImageToPdf'
 import Loading from './pages/Loading'
 import { useLoadingNavigate } from './hooks/useLoadingNavigate'
 import './App.css'
@@ -61,6 +62,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tools/camel-case" element={<CamelCase />} />
+        <Route path="/tools/image-to-pdf" element={<ImageToPdf />} />
         <Route path="/loading" element={<Loading />} />
       </Route>
     </Routes>

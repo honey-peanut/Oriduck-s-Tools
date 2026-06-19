@@ -3,8 +3,8 @@ import { useLoadingNavigate } from '../hooks/useLoadingNavigate'
 import './Dashboard.css'
 
 const TOOLS = [
-  { id: 1,  title: '카멜 케이스 변환', desc: '언더바 대문자 조합으로 된 단어를 카멜 케이스로 변환합니다.', path: '/tools/camel-case' },
-  { id: 2,  title: '예시',              desc: '개발중입니다...', path: null },
+  { id: 1,  title: '카멜 케이스 변환', desc: '대문자 언더바 조합으로 구성된 컬럼명을 컴포넌트 명으로 사용하기 위한 카멜 케이스로 변환합니다.', path: '/tools/camel-case' },
+  { id: 2,  title: '이미지 PDF 변환', desc: '여러 이미지를 합쳐 하나의 PDF파일로 변환합니다.', path: '/tools/image-to-pdf' },
   { id: 3,  title: '예시',              desc: '개발중입니다...', path: null },
   { id: 4,  title: '예시',              desc: '개발중입니다...', path: null },
   { id: 5,  title: '예시',              desc: '개발중입니다...', path: null },
@@ -57,15 +57,23 @@ export default function Dashboard() {
 
   // 카드 "위로 뽑힘" 후 페이지 이동
   const [launchId, setLaunchId] = useState(null)
+  // 선택되지 않은 카드 호버 시 살짝 떠오름
+  const [hovered, setHovered] = useState(null)
 
-  // 진입 시: 중앙에 모여있던 카드들이 좌→우로 펼쳐짐 (spread 0 → 1)
+  // 진입 시: 첫 카드만 중앙에 보이다가(hold) → 우측으로 주르륵 흩어짐 (spread 0 → 1)
   const [spread, setSpread] = useState(0)
   useEffect(() => {
-    const DUR = 1100
+    const HOLD = 650 // 첫 카드만 보이며 머무는 시간(ms)
+    const DUR = 1150 // 흩어지는 시간(ms)
     const start = performance.now()
     let raf
     const tick = (now) => {
-      const t = Math.min((now - start) / DUR, 1)
+      const elapsed = now - start - HOLD
+      if (elapsed < 0) {
+        raf = requestAnimationFrame(tick)
+        return
+      }
+      const t = Math.min(elapsed / DUR, 1)
       setSpread(1 - Math.pow(1 - t, 3)) // easeOutCubic
       if (t < 1) raf = requestAnimationFrame(tick)
     }
@@ -190,27 +198,39 @@ export default function Dashboard() {
             const isActiveCard = i === activeIndex
             // 이동이 모두 끝난 뒤 선택된 카드만 살짝 앞으로 나오듯 커짐
             const popped = isActiveCard && settled && !isDragging
+            // 선택 안 된 카드에 호버 → 위로 살짝 떠올라 제목 노출
+            const hoverLift = hovered === i && !isActiveCard && settled && !isDragging
             const scale = 1 - abs * 0.06 + (popped ? 0.06 : 0)
+            const liftY = hoverLift ? -64 : 0
+
+            let cardTransition = 'none'
+            if (!isDragging && popped) {
+              cardTransition =
+                'transform 0.32s cubic-bezier(0.34, 1.35, 0.64, 1), background 0.2s ease, border-color 0.2s ease'
+            } else if (!isDragging && settled) {
+              cardTransition =
+                'transform 0.28s ease, background 0.2s ease, border-color 0.2s ease'
+            }
 
             return (
               <div
                 key={tool.id}
                 className={`card ${isActiveCard ? 'card-active' : ''}${
                   popped ? ' is-settled' : ''
-                }${launchId === tool.id ? ' card-launch' : ''}`}
+                }${hoverLift ? ' card-hover' : ''}${launchId === tool.id ? ' card-launch' : ''}`}
                 onMouseDown={onMouseDown}
                 onClick={() => onCardClick(i)}
+                onMouseEnter={() => setHovered(i)}
+                onMouseLeave={() => setHovered((h) => (h === i ? null : h))}
                 onAnimationEnd={(e) => {
                   if (launchId === tool.id && e.animationName === 'cardLaunch') {
                     navigate(tool.path)
                   }
                 }}
                 style={{
-                  transform: `translateY(-50%) translateX(${x}px) scale(${scale})`,
+                  transform: `translateY(-50%) translateY(${liftY}px) translateX(${x}px) scale(${scale})`,
                   zIndex: launchId === tool.id ? 100 : TOOLS.length - Math.round(abs),
-                  transition: popped
-                    ? 'transform 0.32s cubic-bezier(0.34, 1.35, 0.64, 1)'
-                    : 'none',
+                  transition: cardTransition,
                   cursor: isDragging ? 'grabbing' : 'grab',
                 }}
               >
