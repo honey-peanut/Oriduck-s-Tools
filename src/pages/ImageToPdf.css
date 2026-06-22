@@ -57,12 +57,97 @@
   margin: 0 0 32px;
 }
 
-.i2p-cards {
+/* 가운데 메뉴 + 우측 옵션 패널 가로 배치 */
+.i2p-body {
   width: 100%;
-  max-width: 560px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.i2p-cards {
+  flex: 0 1 560px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* ── 우측 옵션 패널 ── */
+.i2p-options {
+  flex: 0 0 244px;
+  gap: 18px;
+  position: sticky;
+  top: 28px;
+}
+
+.i2p-opt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.i2p-opt.is-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.i2p-opt-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.i2p-opt-hint {
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.32);
+}
+
+.i2p-seg {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.i2p-seg-btn {
+  flex: 1;
+  padding: 7px 2px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s, color 0.18s;
+}
+
+.i2p-seg-btn:hover:not(:disabled) {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.i2p-seg-btn.is-active {
+  background: #4f8ef7;
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .i2p-body {
+    flex-direction: column;
+    align-items: center;
+  }
+  .i2p-options {
+    position: static;
+    flex: none;
+    width: 100%;
+    max-width: 560px;
+  }
 }
 
 .i2p-card {
@@ -363,6 +448,32 @@
 
 .theme-light .i2p-handle:hover {
   color: rgba(0, 0, 0, 0.6);
+}
+
+/* 라이트 모드 옵션 패널 */
+.theme-light .i2p-opt-label {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.theme-light .i2p-opt-hint {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.theme-light .i2p-seg {
+  border-color: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.theme-light .i2p-seg-btn {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.theme-light .i2p-seg-btn:hover:not(:disabled) {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.theme-light .i2p-seg-btn.is-active {
+  color: #fff;
 }
 
 /* ── 이미지 미리보기 팝업 ── */

@@ -99,6 +99,20 @@
   -webkit-mask-size: 280% 100%;
   mask-position: 0% 0;
   -webkit-mask-position: 0% 0;
+
+  /* 제목이 그라데이션으로 나타나는 동안(같은 1s 타이밍) 첫 카드도 함께 떠오르며 나타남 */
+  animation: carouselIntro 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes carouselIntro {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes revealLeft {
@@ -110,6 +124,20 @@
     mask-position: 0% 0;
     -webkit-mask-position: 0% 0;
   }
+}
+
+/* ── 카드 호버/클릭 감지 영역 ──
+   카드가 떠오르지 않은 "원래 위치"에 정확히 겹쳐 깔리는 투명 div.
+   카드는 pointer-events:none 이라 호버 판정은 오직 이 zone이 담당하고,
+   카드가 위로 떠도 zone은 고정 → 마우스와 충돌하지 않아 깜빡임이 없다. */
+.card-zone {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -140px;
+  width: 280px;
+  height: 320px;
+  border-radius: 20px;
 }
 
 /* ── 카드 ── */
@@ -162,10 +190,10 @@
 }
 
 @keyframes cardLaunch {
-  0%   { transform: translateY(-50%) scale(1.06); opacity: 1; }
-  22%  { transform: translateY(-42%) scale(0.95); opacity: 1; }
+  0%   { transform: translateY(-50%) translateX(var(--card-x, 0px)) scale(1.06); opacity: 1; }
+  22%  { transform: translateY(-42%) translateX(var(--card-x, 0px)) scale(0.95); opacity: 1; }
   70%  { opacity: 1; }
-  100% { transform: translateY(-200%) scale(1.18); opacity: 0; }
+  100% { transform: translateY(-200%) translateX(var(--card-x, 0px)) scale(1.18); opacity: 0; }
 }
 
 .card-title {

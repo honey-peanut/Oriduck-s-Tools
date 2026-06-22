@@ -43,6 +43,52 @@ function stripExt(name) {
   return name.replace(/\.[^.]+$/, '')
 }
 
+// 여백 비율(페이지 짧은 변 기준)
+const MARGIN_RATIO = { none: 0, narrow: 0.06, wide: 0.13 }
+
+const ORIENTATION_OPTS = [
+  { value: 'auto', label: '자동' },
+  { value: 'portrait', label: '세로' },
+  { value: 'landscape', label: '가로' },
+]
+const PAGE_SIZE_OPTS = [
+  { value: 'fit', label: '원본' },
+  { value: 'a4', label: 'A4' },
+  { value: 'letter', label: 'Letter' },
+]
+const MARGIN_OPTS = [
+  { value: 'none', label: '없음' },
+  { value: 'narrow', label: '좁게' },
+  { value: 'wide', label: '넓게' },
+]
+const OUTPUT_OPTS = [
+  { value: 'single', label: '한 파일' },
+  { value: 'separate', label: '각각' },
+]
+
+// 분절형(세그먼트) 선택 버튼
+function Segmented({ label, value, onChange, options, disabled, hint }) {
+  return (
+    <div className={`i2p-opt ${disabled ? 'is-disabled' : ''}`}>
+      <span className="i2p-opt-label">{label}</span>
+      <div className="i2p-seg">
+        {options.map((o) => (
+          <button
+            type="button"
+            key={o.value}
+            className={`i2p-seg-btn ${value === o.value ? 'is-active' : ''}`}
+            onClick={() => onChange(o.value)}
+            disabled={disabled}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+      {hint && <span className="i2p-opt-hint">{hint}</span>}
+    </div>
+  )
+}
+
 function GripIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -64,6 +110,10 @@ export default function ImageToPdf() {
   const [drag, setDrag] = useState(null) // 순서 변경: { index, dy, pitch }
   const [preview, setPreview] = useState(null) // 미리보기 이미지
   const [zoom, setZoom] = useState(1) // 미리보기 확대 배율
+  const [orientation, setOrientation] = useState('auto') // 페이지 방향
+  const [pageSize, setPageSize] = useState('fit') // 페이지 크기(원본/A4/Letter)
+  const [margin, setMargin] = useState('none') // 여백
+  const [output, setOutput] = useState('single') // 출력 방식(한 파일/각각)
   const fileInputRef = useRef(null)
   const previewRef = useRef(null)
 
@@ -164,22 +214,66 @@ export default function ImageToPdf() {
   const generatePdf = () => {
     if (images.length === 0) return
 
+    const trimmed = title.trim()
+
+    // 이미지 1장에 대한 페이지 크기·방향 결정
+    const pageArgs = (img) => {
+      if (pageSize === 'fit') {
+        // 원본: 페이지 = 이미지 크기, 방향은 이미지에 따름
+        const orient = img.w >= img.h ? 'landscape' : 'portrait'
+        return { format: [img.w, img.h], orient }
+      }
+      const orient =
+        orientation === 'auto'
+          ? img.w >= img.h
+            ? 'landscape'
+            : 'portrait'
+          : orientation
+      return { format: pageSize, orient }
+    }
+
+    // 페이지 안에 비율 유지하며 여백만큼 들여 가운데 배치
+    const placeImage = (doc, img) => {
+      const pw = doc.internal.pageSize.getWidth()
+      const ph = doc.internal.pageSize.getHeight()
+      const m = MARGIN_RATIO[margin] * Math.min(pw, ph)
+      const cw = pw - m * 2
+      const ch = ph - m * 2
+      const scale = Math.min(cw / img.w, ch / img.h)
+      const w = img.w * scale
+      const h = img.h * scale
+      doc.addImage(img.dataUrl, 'JPEG', (pw - w) / 2, (ph - h) / 2, w, h)
+    }
+
+    // 각각 따로: 이미지마다 PDF 하나씩 저장
+    if (output === 'separate') {
+      images.forEach((img, idx) => {
+        const { format, orient } = pageArgs(img)
+        const doc = new jsPDF({ orientation: orient, unit: 'px', format })
+        placeImage(doc, img)
+        const name = trimmed
+          ? `${trimmed}_${String(idx + 1).padStart(2, '0')}`
+          : stripExt(img.name) || `image_${idx + 1}`
+        doc.setProperties({ title: name })
+        doc.save(`${name}.pdf`)
+      })
+      return
+    }
+
+    // 한 파일로 통합
     let doc
     images.forEach((img, i) => {
-      const orientation = img.w >= img.h ? 'landscape' : 'portrait'
+      const { format, orient } = pageArgs(img)
       if (i === 0) {
-        doc = new jsPDF({ orientation, unit: 'px', format: [img.w, img.h] })
+        doc = new jsPDF({ orientation: orient, unit: 'px', format })
       } else {
-        doc.addPage([img.w, img.h], orientation)
+        doc.addPage(format, orient)
       }
-      doc.addImage(img.dataUrl, 'JPEG', 0, 0, img.w, img.h)
+      placeImage(doc, img)
     })
 
     // 제목: 입력값(공백 제거) 우선, 비어있으면 마지막 이미지 파일명
-    const trimmed = title.trim()
-    const fallback = stripExt(images[images.length - 1].name)
-    const name = trimmed || fallback
-
+    const name = trimmed || stripExt(images[images.length - 1].name)
     doc.setProperties({ title: name })
     doc.save(`${name}.pdf`)
   }
@@ -196,6 +290,7 @@ export default function ImageToPdf() {
 
       <h1 className="i2p-title">PDF 변환기</h1>
 
+      <div className="i2p-body">
       <div className="i2p-cards">
         <section className="i2p-card">
           <h2 className="i2p-card-title">이미지</h2>
@@ -292,6 +387,38 @@ export default function ImageToPdf() {
         >
           PDF 만들기 ({images.length}장)
         </button>
+        </div>
+
+        <aside className="i2p-options i2p-card">
+          <h2 className="i2p-card-title">PDF 옵션</h2>
+          <Segmented
+            label="페이지 방향"
+            value={orientation}
+            onChange={setOrientation}
+            options={ORIENTATION_OPTS}
+            disabled={pageSize === 'fit'}
+            hint={pageSize === 'fit' ? '원본 크기에선 이미지 방향을 따릅니다' : undefined}
+          />
+          <Segmented
+            label="페이지 크기"
+            value={pageSize}
+            onChange={setPageSize}
+            options={PAGE_SIZE_OPTS}
+          />
+          <Segmented
+            label="여백"
+            value={margin}
+            onChange={setMargin}
+            options={MARGIN_OPTS}
+          />
+          <Segmented
+            label="출력 방식"
+            value={output}
+            onChange={setOutput}
+            options={OUTPUT_OPTS}
+            hint={output === 'separate' ? '이미지마다 PDF가 따로 저장됩니다' : undefined}
+          />
+        </aside>
       </div>
 
       {preview && (

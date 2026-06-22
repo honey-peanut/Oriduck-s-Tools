@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Fragment } from 'react'
 import { useLoadingNavigate } from '../hooks/useLoadingNavigate'
 import './Dashboard.css'
 
@@ -16,7 +16,9 @@ const TOOLS = [
 ]
 
 const CARD_WIDTH = 280
-const STEP = CARD_WIDTH * 0.5
+const CARD_HEIGHT = 320
+const HOVER_LIFT = 64 // 호버 시 카드가 위로 떠오르는 양(px)
+const STEP = CARD_WIDTH * 0.33 // 카드 간격(작을수록 더 뭉쳐 보임)
 const MOMENTUM_WINDOW_MS = 120
 const MOMENTUM_FACTOR = 180
 const MAX_MOMENTUM_STEPS = 4
@@ -44,11 +46,12 @@ export default function Dashboard() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragDelta, setDragDelta] = useState(0)
   const [settled, setSettled] = useState(true) // 카드 이동 완료 여부
+  const [dragBase, setDragBase] = useState(0) // 드래그 시작 시점의 위치(렌더가 의존하므로 state)
 
   const dragStartX = useRef(null)
-  const startPos = useRef(0)
   const velocityTracker = useRef([])
   const hasDragged = useRef(false)
+  const pointerDown = useRef(false) // 눌린 상태(아직 드래그로 확정 안 됨)
   const rafRef = useRef(null)
   const posRef = useRef(0)
   useEffect(() => {
@@ -117,17 +120,25 @@ export default function Dashboard() {
     cancelAnimationFrame(rafRef.current)
     rafRef.current = null
     dragStartX.current = e.clientX
-    startPos.current = posRef.current
-    setIsDragging(true)
+    setDragBase(posRef.current)
+    // 아직 isDragging/hovered를 건드리지 않는다: 움직이지 않으면 클릭으로 처리되어
+    // 카드가 떠 있는 상태 그대로 클릭이 카드(zone)에 잡혀 페이지 이동된다.
+    pointerDown.current = true
     setDragDelta(0)
     velocityTracker.current = [{ x: e.clientX, t: Date.now() }]
     hasDragged.current = false
   }
 
   const onMouseMove = (e) => {
-    if (!isDragging) return
+    if (!pointerDown.current) return
     const delta = e.clientX - dragStartX.current
-    if (Math.abs(delta) > 5) hasDragged.current = true
+    // 5px 넘게 움직여야 비로소 '드래그'로 확정 → 그때 카드 떠오름 해제
+    if (Math.abs(delta) > 5 && !hasDragged.current) {
+      hasDragged.current = true
+      setIsDragging(true)
+      setHovered(null)
+    }
+    if (!hasDragged.current) return
     setDragDelta(delta)
     const now = Date.now()
     velocityTracker.current.push({ x: e.clientX, t: now })
@@ -135,7 +146,15 @@ export default function Dashboard() {
   }
 
   const commit = () => {
-    if (!isDragging) return
+    if (!pointerDown.current) return
+    pointerDown.current = false
+
+    // 움직이지 않았으면 단순 클릭 → 캐러셀 이동 없이 종료(네비게이션은 onClick)
+    if (!hasDragged.current) {
+      setIsDragging(false)
+      dragStartX.current = null
+      return
+    }
 
     const tracker = velocityTracker.current
     let momentumSteps = 0
@@ -151,7 +170,7 @@ export default function Dashboard() {
     }
 
     const max = TOOLS.length - 1
-    const desired = startPos.current + (-dragDelta / STEP)
+    const desired = dragBase + (-dragDelta / STEP)
     const fromPos = rubberBand(desired, max) // 손을 뗀 실제 위치(고무줄 포함)
     const target = Math.round(desired) + momentumSteps
     setIsDragging(false)
@@ -162,15 +181,29 @@ export default function Dashboard() {
 
   const onCardClick = (i) => {
     if (hasDragged.current) return
-    animateTo(posRef.current, i)
+    const centered = Math.round(posRef.current) // 현재 가운데(선택된) 카드
+    if (i === centered) {
+      // 이미 가운데 카드 → 페이지 이동(카드 뽑기 애니메이션)
+      const tool = TOOLS[i]
+      if (tool.path && !launchId) setLaunchId(tool.id)
+    } else {
+      // 멀리 있는 카드 → 가운데로 이동
+      animateTo(posRef.current, i)
+    }
   }
 
   const max = TOOLS.length - 1
-  const desired = startPos.current + (-dragDelta / STEP)
+  const desired = dragBase + (-dragDelta / STEP)
   // 드래그 중엔 손가락을 따라(고무줄), 그 외엔 애니메이션되는 연속 위치
   const livePos = isDragging ? rubberBand(desired, max) : pos
   // 선택 강조 = 실제 위치에서 가장 가까운(=중앙) 카드
   const activeIndex = Math.max(0, Math.min(max, Math.round(livePos)))
+  // 카드 내용(제목·설명) 페이드인.
+  // spread는 easeOutCubic이라 시간상 일찍 1에 근접 → spread 기준으로 하면 글자가
+  // 너무 빨리 다 보임. easeOutCubic을 역산해 '실제 진행 시간(t)'을 구하고,
+  // 그 마지막 40% 시간 구간에만 나타나 펼침이 끝나는 순간 딱 완전히 보이게 한다.
+  const spreadT = spread >= 1 ? 1 : 1 - Math.cbrt(1 - spread)
+  const contentReveal = Math.max(0, Math.min(1, (spreadT - 0.6) / 0.4))
 
   return (
     <div className="dashboard">
@@ -189,7 +222,9 @@ export default function Dashboard() {
           onMouseMove={onMouseMove}
           onMouseUp={commit}
           onMouseLeave={commit}
-          style={{ userSelect: 'none' }}
+          // 처음 카드가 펼쳐지는 동안(spread<1)은 호버·클릭·드래그를 막아
+          // 저사양에서의 렉을 줄인다. 펼침이 끝나면(spread===1) 다시 활성화.
+          style={{ userSelect: 'none', pointerEvents: spread < 1 ? 'none' : undefined }}
         >
           {TOOLS.map((tool, i) => {
             const offset = i - livePos
@@ -200,53 +235,81 @@ export default function Dashboard() {
             const popped = isActiveCard && settled && !isDragging
             // 선택 안 된 카드에 호버 → 위로 살짝 떠올라 제목 노출
             const hoverLift = hovered === i && !isActiveCard && settled && !isDragging
-            const scale = 1 - abs * 0.06 + (popped ? 0.06 : 0)
-            const liftY = hoverLift ? -64 : 0
+            const scale = 1 - abs * 0.04 + (popped ? 0.06 : 0)
+            const liftY = hoverLift ? -HOVER_LIFT : 0
 
+            // 인트로 펼침(spread<1) 동안엔 rAF가 매 프레임 transform을 직접 그리므로
+            // CSS 트랜지션을 끈다(기본 'none'). 둘이 겹치면 끝부분에서 끊겨 보임(훅훅).
             let cardTransition = 'none'
-            if (!isDragging && popped) {
+            if (spread >= 1 && !isDragging && popped) {
               cardTransition =
                 'transform 0.32s cubic-bezier(0.34, 1.35, 0.64, 1), background 0.2s ease, border-color 0.2s ease'
-            } else if (!isDragging && settled) {
+            } else if (spread >= 1 && !isDragging && settled) {
               cardTransition =
                 'transform 0.28s ease, background 0.2s ease, border-color 0.2s ease'
             }
 
+            const baseZ = TOOLS.length - Math.round(abs)
+
             return (
-              <div
-                key={tool.id}
-                className={`card ${isActiveCard ? 'card-active' : ''}${
-                  popped ? ' is-settled' : ''
-                }${hoverLift ? ' card-hover' : ''}${launchId === tool.id ? ' card-launch' : ''}`}
-                onMouseDown={onMouseDown}
-                onClick={() => onCardClick(i)}
-                onMouseEnter={() => setHovered(i)}
-                onMouseLeave={() => setHovered((h) => (h === i ? null : h))}
-                onAnimationEnd={(e) => {
-                  if (launchId === tool.id && e.animationName === 'cardLaunch') {
-                    navigate(tool.path)
-                  }
-                }}
-                style={{
-                  transform: `translateY(-50%) translateY(${liftY}px) translateX(${x}px) scale(${scale})`,
-                  zIndex: launchId === tool.id ? 100 : TOOLS.length - Math.round(abs),
-                  transition: cardTransition,
-                  cursor: isDragging ? 'grabbing' : 'grab',
-                }}
-              >
-                <h2 className="card-title">{tool.title}</h2>
-                <p className="card-desc">{tool.desc}</p>
-                <button
-                  className="card-btn"
-                  disabled={!isActiveCard}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    if (tool.path && !launchId) setLaunchId(tool.id)
+              <Fragment key={tool.id}>
+                <div
+                  className={`card ${isActiveCard ? 'card-active' : ''}${
+                    popped ? ' is-settled' : ''
+                  }${hoverLift ? ' card-hover' : ''}${launchId === tool.id ? ' card-launch' : ''}`}
+                  onMouseDown={onMouseDown}
+                  onClick={() => onCardClick(i)}
+                  onAnimationEnd={(e) => {
+                    if (launchId === tool.id && e.animationName === 'cardLaunch') {
+                      navigate(tool.path)
+                    }
+                  }}
+                  style={{
+                    transform: `translateY(-50%) translateY(${liftY}px) translateX(${x}px) scale(${scale})`,
+                    '--card-x': `${x}px`,
+                    zIndex: launchId === tool.id ? 100 : baseZ * 2,
+                    transition: cardTransition,
+                    cursor: isDragging ? 'grabbing' : 'grab',
+                    // 떠오르는 카드는 클릭만 받고 호버는 zone이 담당 → 카드가 움직여도 깜빡임 없음
+                    pointerEvents: isActiveCard ? 'auto' : 'none',
                   }}
                 >
-                  이 도구 사용해보기
-                </button>
-              </div>
+                  <h2 className="card-title" style={{ opacity: contentReveal }}>{tool.title}</h2>
+                  <p className="card-desc" style={{ opacity: contentReveal }}>{tool.desc}</p>
+                  <button
+                    className="card-btn"
+                    disabled={!isActiveCard}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (tool.path && !launchId) setLaunchId(tool.id)
+                    }}
+                  >
+                    이 도구 사용해보기
+                  </button>
+                </div>
+                {!isActiveCard && (
+                  // 카드의 "내려와 있는 원래 위치"에 고정된 호버/클릭 감지용 투명 div.
+                  // 카드가 떠올라도 이 zone은 그대로 있어 호버가 유지되고, 더 앞쪽
+                  // 카드의 zone(z-index ↑)이 뒤 카드의 zone을 덮어 간섭을 막는다.
+                  // 호버 중에는 bottom은 그대로 두고 top만 카드가 올라간 만큼 위로
+                  // 늘여(높이 ↑) 떠오른 카드 부분까지 덮어 클릭이 되게 한다.
+                  <div
+                    className="card-zone"
+                    onMouseDown={onMouseDown}
+                    onClick={() => onCardClick(i)}
+                    onMouseEnter={() => setHovered(i)}
+                    onMouseLeave={() => setHovered((h) => (h === i ? null : h))}
+                    style={{
+                      transform: hoverLift
+                        ? `translateY(-50%) translateY(${-HOVER_LIFT / 2}px) translateX(${x}px) scale(${scale})`
+                        : `translateY(-50%) translateX(${x}px) scale(${scale})`,
+                      height: hoverLift ? `${CARD_HEIGHT + HOVER_LIFT / scale}px` : undefined,
+                      zIndex: baseZ * 2 + 1,
+                      cursor: isDragging ? 'grabbing' : 'grab',
+                    }}
+                  />
+                )}
+              </Fragment>
             )
           })}
         </div>
