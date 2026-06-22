@@ -182,14 +182,9 @@ export default function Dashboard() {
   const onCardClick = (i) => {
     if (hasDragged.current) return
     const centered = Math.round(posRef.current) // 현재 가운데(선택된) 카드
-    if (i === centered) {
-      // 이미 가운데 카드 → 페이지 이동(카드 뽑기 애니메이션)
-      const tool = TOOLS[i]
-      if (tool.path && !launchId) setLaunchId(tool.id)
-    } else {
-      // 멀리 있는 카드 → 가운데로 이동
-      animateTo(posRef.current, i)
-    }
+    // 가운데 카드는 본문 클릭으로 이동하지 않음(이동은 "이 도구 사용해보기" 버튼으로만).
+    // 멀리 있는 카드만 클릭 시 가운데로 이동.
+    if (i !== centered) animateTo(posRef.current, i)
   }
 
   const max = TOOLS.length - 1
@@ -270,8 +265,9 @@ export default function Dashboard() {
                     zIndex: launchId === tool.id ? 100 : baseZ * 2,
                     transition: cardTransition,
                     cursor: isDragging ? 'grabbing' : 'grab',
-                    // 떠오르는 카드는 클릭만 받고 호버는 zone이 담당 → 카드가 움직여도 깜빡임 없음
-                    pointerEvents: isActiveCard ? 'auto' : 'none',
+                    // 떠오르는 카드는 클릭만 받고 호버는 zone이 담당 → 카드가 움직여도 깜빡임 없음.
+                    // active 카드의 호버(=버튼 등장)도 펼침이 끝난 뒤에만 동작하게 spread 조건 추가.
+                    pointerEvents: isActiveCard && spread >= 1 ? 'auto' : 'none',
                   }}
                 >
                   <h2 className="card-title" style={{ opacity: contentReveal }}>{tool.title}</h2>
