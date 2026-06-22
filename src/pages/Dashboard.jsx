@@ -66,7 +66,7 @@ export default function Dashboard() {
   // 진입 시: 첫 카드만 중앙에 보이다가(hold) → 우측으로 주르륵 흩어짐 (spread 0 → 1)
   const [spread, setSpread] = useState(0)
   useEffect(() => {
-    const HOLD = 650 // 첫 카드만 보이며 머무는 시간(ms)
+    const HOLD = 1600 // 제목이 중앙→위로 자리 잡을 때까지 대기 후 펼침 시작(ms)
     const DUR = 1150 // 흩어지는 시간(ms)
     const start = performance.now()
     let raf
